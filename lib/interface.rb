@@ -100,8 +100,31 @@ class Object
     mod.instance_eval(&block)
     mod
   end
+
+  if ENV['RUBY_INTERFACE_TYPECHECK'].to_i > 0
+    def check_class
+      spec = yield
+      spec.each do |type, k|
+        fail NameError, "#{type} is not a class" unless type.is_a? Class
+        fail ArgumentError, "#{k} is not type #{type}" unless k.is_a? klass
+      end
+    end
+
+    def check_interface
+      spec = yield
+      spec.each do |type, k|
+        fail NameError, "#{type} is not an interface" unless type.is_a? Module
+        unless k.class.include? type
+          fail ArgumentError, "#{k} does not implement #{type}"
+        end
+      end
+    end
+  else
+    def check_class(*_); end
+    def check_interface(*_); end
+  end
 end
- 
+
 class Module
-  alias :implements :include
+  alias_method :implements, :include
 end
