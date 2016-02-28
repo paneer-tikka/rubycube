@@ -106,7 +106,7 @@ class Object
       spec = yield
       spec.each do |type, k|
         fail NameError, "#{type} is not a class" unless type.is_a? Class
-        fail ArgumentError, "#{k} is not type #{type}" unless k.is_a? klass
+        fail ArgumentError, "#{k} is not type #{type}" unless k.is_a? type
       end
     end
 
