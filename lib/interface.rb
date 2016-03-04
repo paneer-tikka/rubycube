@@ -10,7 +10,7 @@ module Interface
   # Raised if a class or instance does not meet the interface requirements.
   class MethodMissing < RuntimeError; end
   class PrivateVisibleMethodMissing < MethodMissing; end
-  class PublicVisbileMethodMissing < MethodMissing; end
+  class PublicVisibleMethodMissing < MethodMissing; end
 
   alias :extends :extend
 
@@ -38,7 +38,7 @@ module Interface
     (ids - @unreq).uniq.each do |id|
       id = id.to_s if RUBY_VERSION.to_f < 1.9
       unless mod.public_instance_methods(true).include?(id)
-        raise Interface::PublicVisibleMethodMissing, "#{mod}##{id}"
+        raise Interface::PublicVisibleMethodMissing, "#{mod}: #{self}##{id}"
       end
     end
 
@@ -52,7 +52,7 @@ module Interface
       id = id.to_s if RUBY_VERSION.to_f < 1.9
       methods = mod.instance_methods(true) + mod.private_instance_methods(true)
       unless methods.include?(id)
-        raise Interface::PrivateVisibleMethodMissing, "#{mod}##{id}"
+        raise Interface::PrivateVisibleMethodMissing, "#{mod}: #{self}##{id}"
       end
     end
 
