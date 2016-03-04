@@ -9,6 +9,8 @@ module Interface
    
   # Raised if a class or instance does not meet the interface requirements.
   class MethodMissing < RuntimeError; end
+  class PrivateVisibleMethodMissing < MethodMissing; end
+  class PublicVisbileMethodMissing < MethodMissing; end
 
   alias :extends :extend
 
@@ -25,18 +27,32 @@ module Interface
 
     # Is this a sub-interface?
     inherited = (self.ancestors-[self]).select{ |x| Interface === x }
-    inherited = inherited.map{ |x| x.instance_variable_get('@ids') }
+    inherited_ids = inherited.map{ |x| x.instance_variable_get('@ids') }
 
     # Store required method ids
-    ids = @ids + inherited.flatten
+    ids = @ids + inherited_ids.flatten
     @unreq ||= []
 
     # Iterate over the methods, minus the unrequired methods, and raise
     # an error if the method has not been defined.
     (ids - @unreq).uniq.each do |id|
       id = id.to_s if RUBY_VERSION.to_f < 1.9
-      unless mod.instance_methods(true).include?(id)
-        raise Interface::MethodMissing, "#{mod}##{id}"
+      unless mod.public_instance_methods(true).include?(id)
+        raise Interface::PublicVisibleMethodMissing, "#{mod}##{id}"
+      end
+    end
+
+    inherited_private_ids = inherited.map{ |x| x.instance_variable_get('@private_ids') }
+    # Store required method ids
+    private_ids = @private_ids + inherited_private_ids.flatten
+
+    # Iterate over the methods, minus the unrequired methods, and raise
+    # an error if the method has not been defined.
+    (private_ids - @unreq).uniq.each do |id|
+      id = id.to_s if RUBY_VERSION.to_f < 1.9
+      methods = mod.instance_methods(true) + mod.private_instance_methods(true)
+      unless methods.include?(id)
+        raise Interface::PrivateVisibleMethodMissing, "#{mod}##{id}"
       end
     end
 
@@ -49,12 +65,16 @@ module Interface
   # module is included/implemented, those method names must have already been
   # defined. 
   #
-  def required_methods(*ids)
-    @ids = ids
+  def required_public_methods
+    @ids
   end
 
-  def interface_methods
-    @ids
+  def public_visible(*ids)
+    @ids.concat(ids)
+  end
+
+  def private_visible(*ids)
+    @private_ids.concat(ids)
   end
   # Accepts an array of method names that are removed as a requirement for
   # implementation. Presumably you would use this in a sub-interface where
@@ -100,6 +120,8 @@ class Object
   def interface(&block)
     mod = Module.new
     mod.extend(Interface)
+    mod.instance_variable_set('@ids', [])
+    mod.instance_variable_set('@private_ids', [])
     mod.instance_eval(&block)
     mod
   end
