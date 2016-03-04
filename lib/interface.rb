@@ -36,7 +36,7 @@ module Interface
     (ids - @unreq).uniq.each do |id|
       id = id.to_s if RUBY_VERSION.to_f < 1.9
       unless mod.instance_methods(true).include?(id)
-        raise Interface::MethodMissing, id
+        raise Interface::MethodMissing, "#{mod}##{id}"
       end
     end
 
@@ -53,6 +53,9 @@ module Interface
     @ids = ids
   end
 
+  def interface_methods
+    @ids
+  end
   # Accepts an array of method names that are removed as a requirement for
   # implementation. Presumably you would use this in a sub-interface where
   # you only wanted a partial implementation of an existing interface.
@@ -123,8 +126,13 @@ class Object
     def check_class(*_); end
     def check_interface(*_); end
   end
+
 end
 
 class Module
   alias_method :implements, :include
+
+  def implements?(mod)
+    self != mod && include?(mod)
+  end
 end
