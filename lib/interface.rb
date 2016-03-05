@@ -99,13 +99,13 @@ class Object
   #
   #   # Require 'alpha' and 'beta' methods
   #   AlphaInterface = interface{
-  #      required_methods :alpha, :beta 
+  #      public_visible :alpha, :beta 
   #   }
   #
   #   # A sub-interface that requires 'beta' and 'gamma' only
   #   GammaInterface = interface{
   #      extends AlphaInterface
-  #      required_methods :gamma
+  #      public_visible :gamma
   #      unrequired_methods :alpha
   #   }
   #

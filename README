@@ -11,7 +11,7 @@
   require 'interface'
   
   Calculator = interface {
-    required_methods :fact
+    public_visible :fact
   }
   
   class Calc
