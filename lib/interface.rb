@@ -11,6 +11,7 @@ module Interface
   class MethodMissing < RuntimeError; end
   class PrivateVisibleMethodMissing < MethodMissing; end
   class PublicVisibleMethodMissing < MethodMissing; end
+  class MethodArityError < MethodMissing; end
 
   alias :extends :extend
 
@@ -30,33 +31,54 @@ module Interface
     inherited_ids = inherited.map{ |x| x.instance_variable_get('@ids') }
 
     # Store required method ids
-    ids = @ids + inherited_ids.flatten
+    ids = @ids.keys + map_spec(inherited_ids.flatten).keys
     @unreq ||= []
 
     # Iterate over the methods, minus the unrequired methods, and raise
     # an error if the method has not been defined.
+    mod_public_instance_methods = mod.public_instance_methods(true)
     (ids - @unreq).uniq.each do |id|
       id = id.to_s if RUBY_VERSION.to_f < 1.9
-      unless mod.public_instance_methods(true).include?(id)
+      unless mod_public_instance_methods.include?(id)
         raise Interface::PublicVisibleMethodMissing, "#{mod}: #{self}##{id}"
       end
+      verify_arity(mod, id) if @ids[id]
     end
 
     inherited_private_ids = inherited.map{ |x| x.instance_variable_get('@private_ids') }
     # Store required method ids
-    private_ids = @private_ids + inherited_private_ids.flatten
+    private_ids = @private_ids.keys + map_spec(inherited_private_ids.flatten).keys
 
     # Iterate over the methods, minus the unrequired methods, and raise
     # an error if the method has not been defined.
+    mod_all_methods = mod.instance_methods(true) + mod.private_instance_methods(true)
+
     (private_ids - @unreq).uniq.each do |id|
       id = id.to_s if RUBY_VERSION.to_f < 1.9
-      methods = mod.instance_methods(true) + mod.private_instance_methods(true)
-      unless methods.include?(id)
+      unless mod_all_methods.include?(id)
         raise Interface::PrivateVisibleMethodMissing, "#{mod}: #{self}##{id}"
       end
+      verify_arity(mod, id) if @ids[id]
     end
 
     super mod
+  end
+
+  def verify_arity(mod, meth)
+    arity = mod.instance_method(meth).arity
+    unless arity == @ids[meth]
+      raise Interface::MethodArityError, "#{mod}: #{self}##{meth}=#{arity}. Should be #{@ids[meth]}"
+    end
+  end
+
+  def map_spec(ids)
+    ids.reduce({}) do |res, m|
+      if m.is_a?(Hash)
+        res.merge(m)
+      elsif m.is_a?(Symbol) || m.is_a?(String)
+        res.merge({ m.to_sym => nil })
+      end
+    end
   end
 
   public
@@ -66,15 +88,17 @@ module Interface
   # defined. 
   #
   def required_public_methods
-    @ids
+    @ids.keys
   end
 
   def public_visible(*ids)
-    @ids.concat(ids)
+    spec = map_spec(ids)
+    @ids.merge!(spec)
   end
 
   def private_visible(*ids)
-    @private_ids.concat(ids)
+    spec = map_spec(ids)
+    @private_ids.merge!(spec)
   end
   # Accepts an array of method names that are removed as a requirement for
   # implementation. Presumably you would use this in a sub-interface where
@@ -120,8 +144,8 @@ class Object
   def interface(&block)
     mod = Module.new
     mod.extend(Interface)
-    mod.instance_variable_set('@ids', [])
-    mod.instance_variable_set('@private_ids', [])
+    mod.instance_variable_set('@ids', {})
+    mod.instance_variable_set('@private_ids', {})
     mod.instance_eval(&block)
     mod
   end
@@ -153,8 +177,36 @@ end
 
 class Module
   alias_method :implements, :include
+  alias_method :assert_implements, :include
+end
 
-  def implements?(mod)
-    self != mod && include?(mod)
+module Interface::Trait
+  def requires_interface(intf)
+    unless intf.is_a? Interface
+      raise ArgumentError, "#{intf} is not an Interface"
+    end
+    define_singleton_method(:included) do |mod|
+      mod.assert_implements(intf) 
+    end
+  end
+
+
+  def instantiator(meth, sym, intf)
+    define_singleton_method(meth) do |val|
+      check_interface { { intf => val } }
+      Class.new {
+        def initialize(val, sym)
+          if sym.to_s.start_with? '@'
+            raise ArgumentError, "Method cannot start with @: #{sym}"
+          end
+          instance_variable_set("@#{sym}".to_sym,val)
+        end
+
+        private
+
+        attr_reader sym
+      }.include(self).new(val, sym)
+    end
   end
 end
+
