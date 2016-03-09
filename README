@@ -1,45 +1,13 @@
 == Description
-  This module provides Java style interfaces for Ruby, including a fairly
-  similar syntax.  I don't necessarily believe in interfaces, but I wanted to
-  put it out there as proof that it could be done.  Frankly, Java needs mixins
-  more than Ruby needs interfaces, but here you go.
+  This is a backward incompatible fork of https://github.com/djberg96/interface
+  It provides interfaces, traits and runtime interface checks in Ruby 
 
 == Installation
   gem install interface
 
 == Synopsis
-  require 'interface'
-  
-  Calculator = interface {
-    public_visible :fact
-  }
-  
-  class Calc
-    def fact(n)
-      res = 1
-      n.times do |i|
-        res *= i + 1
-      end
-      res
-    end
-  
-    # This will check whether class Calc implements
-    # all methods mentioned in Calculator interface
-    implements Calculator
-  end
-  
-  def do_fact(calc, n)
-    # check_interface and check_class do nothing unless
-    # environment variable RUBY_INTERFACE_TYPECHECK=1
-
-    # Check whether calc satisfies interface Calculator
-    check_interface { { Calculator => calc } }
-    # Check whether n is of class Integer
-    check_class { { Integer => n } }
-    calc.fact(n)
-  end
- 
-  do_sum(Calc.new, (1...1000).to_a)
+  See the example examples/example_typecheck_trait.rb for a well commented
+  and annotated example of how to use the gem.
 
 == General Notes
   Subinterfaces work as well. See the test_sub.rb file under the 'test'
@@ -51,12 +19,12 @@
   this variable is set to 1, the check methods are defined as empty methods.
 
 == Runtime performance of check methods
-  On a Macbook Pro 2.4 GHz Intel Core i5 machine, adding a check
-  method costs about 1 second for every million calls. YMMV. It is advisable
-  to benchmark for your code to determine if the overhead is acceptable in
-  your enviroment.
+  On a Macbook Pro 2.4 GHz Intel Core i5 machine, adding a `check_interface`
+  or `check_class` method costs about 1 second for every million calls. YMMV.
+  It is advisable to benchmark for your code to determine if the overhead is
+  acceptable in your enviroment.
 
-== Developer's Notes
+== Developer's Notes (from the original repository)
   A discussion on IRC with Mauricio Fernandez got us talking about traits.
   During that discussion I remembered a blog entry by David Naseby. I 
   revisited his blog entry and took a closer look:
@@ -78,13 +46,14 @@
   combined work of David Naseby and Mauricio Fernandez. I just happened to be
   the guy that put it all together.
 
-== Acknowledgements
+== Acknowledgements (from the original repository)
   This module was largely inspired and somewhat copied from a post by
   David Naseby (see URL above). It was subsequently modified almost entirely
   by Mauricio Fernandez through a series of discussions on IRC.
 	
 == Copyright
   (C) 2004-2016 Daniel J. Berger
+  (C) 2016 Aditya Godbole
   All rights reserved.
 	
 == Warranty
@@ -97,3 +66,4 @@
 	
 == Author
   Daniel J. Berger
+  Aditya Godbole
