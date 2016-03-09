@@ -3,8 +3,10 @@
 #
 # Test suite for the Interface module.
 #####################################################
+ENV['RUBY_INTERFACE_TYPECHECK'] = "1"
 require 'test-unit'
 require 'interface'
+
 
 class TC_Interface < Test::Unit::TestCase
   def self.startup
@@ -45,7 +47,7 @@ class TC_Interface < Test::Unit::TestCase
   end
 
   def test_version
-    assert_equal('1.0.4', Interface::VERSION)
+    assert_equal('0.1.0', Interface::VERSION)
   end
 
   def test_interface_requirements_not_met

@@ -3,7 +3,7 @@
   It provides interfaces, traits and runtime interface checks in Ruby 
 
 == Installation
-  gem install interface
+  This gem is not yet available on rubygems. Please use from github directly.
 
 == Synopsis
   See the example examples/example_typecheck_trait.rb for a well commented
