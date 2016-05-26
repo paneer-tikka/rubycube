@@ -73,4 +73,12 @@ class TC_Interface < Test::Unit::TestCase
     B.implements(@@alpha_interface)
     assert_raise(ArgumentError) { checker_method(B.implements(@@alpha_interface).new) }
   end
+
+  def test_shell
+    sh = @@alpha_interface.shell
+    sho = sh.new
+    [:alpha, :beta].each do |m|
+      assert_equal(sho.send(m), nil)
+    end
+  end
 end

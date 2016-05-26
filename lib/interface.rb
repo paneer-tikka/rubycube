@@ -108,6 +108,16 @@ module Interface
     @unreq ||= []
     @unreq += ids
   end
+
+  def shell
+    ids = @ids
+    unreq = @unreq
+    Class.new(Object) do
+      (ids.keys - unreq).each do |m|
+        define_method(m) {}
+      end
+    end.implements(self)
+  end
 end
 
 class Object
