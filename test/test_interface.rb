@@ -11,13 +11,14 @@ require 'interface'
 class TC_Interface < Test::Unit::TestCase
   def self.startup
     alpha_interface = interface{
-      public_visible({:alpha => 0}, :beta)
+      public_visible(:alpha, :beta)
+      proto(:beta) { [Integer, NilClass].to_set }
+      proto(:delta, Integer, String, Integer) { Integer }
     }
 
     gamma_interface = interface{
       extends alpha_interface
       public_visible :gamma
-      unrequired_methods :alpha
     }
 
     # Workaround for 1.9.x
@@ -30,20 +31,23 @@ class TC_Interface < Test::Unit::TestCase
       class B
         def alpha; end
         def beta; end
+        def delta(a, b, c=nil); 0; end
       end
     ")
 
     eval("
       class C
+        def alpha; end
         def beta; end
         def gamma; end
+        def delta(a); end
       end
     ")
   end
 
 
   def checker_method(arg)
-    check_interface { { @@gamma_interface => arg }}
+    check_type(@@gamma_interface, arg)
   end
 
   def test_version
@@ -65,13 +69,36 @@ class TC_Interface < Test::Unit::TestCase
   end
 
   def test_gamma_interface_requirements_met
-    assert_nothing_raised{ C.new.extend(@@gamma_interface) }
+    assert_raise(Interface::MethodArityError) { C.new.extend(@@gamma_interface) }
+    assert_raise(Interface::MethodArityError) { C.as_interface(@@gamma_interface) }
   end
 
   def test_method_check
-    assert_nothing_raised { checker_method(C.implements(@@gamma_interface).new) }
-    B.implements(@@alpha_interface)
-    assert_raise(ArgumentError) { checker_method(B.implements(@@alpha_interface).new) }
+    assert_raise(Interface::TypeMismatchError) { checker_method(B.as_interface(@@alpha_interface).new) }
+  end
+
+  def test_runtime_error_check
+    assert_nothing_raised {
+      B.as_interface(@@alpha_interface, true).new.beta
+    }
+    assert_raise(ArgumentError) {
+      B.as_interface(@@alpha_interface).new.delta
+    }
+    assert_raise(ArgumentError) {
+      B.as_interface(@@alpha_interface).new.delta(1)
+    }
+    assert_raise(Interface::TypeMismatchError) {
+      B.as_interface(@@alpha_interface, true).new.delta(1, 2)
+    }
+    assert_raise(Interface::TypeMismatchError) {
+      B.as_interface(@@alpha_interface, true).new.delta(1, "2", "3")
+    }
+    assert_nothing_raised {
+      B.as_interface(@@alpha_interface, true).new.delta(1, "2")
+    }
+    assert_nothing_raised {
+      B.as_interface(@@alpha_interface, true).new.delta(1, "2", 3)
+    }
   end
 
   def test_shell
