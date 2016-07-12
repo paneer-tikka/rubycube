@@ -270,39 +270,96 @@ class Object
 end
 
 class Module
-
-  def implements(mod, runtime_check = true)
-    instance_variable_set(:@__interface_runtime_check, true) if runtime_check
+  def implements(mod, runtime_checks: true)
+    unless is_a? Class
+      raise "Non-Class modules should not implement interfaces"
+    end
+    instance_variable_set(:@__interface_runtime_check, true) if runtime_checks
     include(mod)
   end
 
-
-  def as_interface(iface, runtime_check = true)
-    dup.implements(iface, runtime_check)
+  def as_interface(iface, runtime_checks: true)
+    clone.implements(iface, runtime_checks: runtime_checks)
   end
 
   def assert_implements(iface)
-    dup.implements(iface, false)
+    clone.implements(iface, false)
+  end
+
+  def with_trait(trait, aliases: {}, suppresses: [])
+    unless trait.is_a? Interface::Trait
+      raise ArgumentError, "#{trait} is not an Interface::Trait"
+    end
+    cls = clone
+    cls.instance_variable_set(:@__trait_allow_include, true)
+    cls.instance_variable_set(:@__trait_cloned_from, self)
+    raise ArgumentError, "aliases must be a Hash" unless aliases.is_a?(Hash)
+    raise ArgumentError, "supresses must be a Array" unless suppresses.is_a?(Array)
+
+    al_trait = trait_with_resolutions(trait, aliases, suppresses)
+    cls.include(al_trait)
+    cls
   end
 
   private
 
+  def trait_with_resolutions(trait, aliases, suppress)
+    cl = trait.clone
+    cl.module_exec do
+      suppress.each do |sup|
+        undef_method(sup)
+      end
+      aliases.each do |before, after|
+        begin
+          alias_method(after, before)
+        rescue => e
+          $stderr.puts "with_trait(#{trait}): #{e.message}"
+          raise ArgumentError, "with_trait(#{trait}): #{e.message}"
+        end
+        undef_method(before)
+      end
+    end
+    cl
+  end
+
   def shell_implements(mod)
-    self.instance_variable_set(:@__interface_runtime_check, false)
-    self.instance_variable_set(:@__interface_arity_skip, true)
+    instance_variable_set(:@__interface_runtime_check, false)
+    instance_variable_set(:@__interface_arity_skip, true)
     include(mod)
   end
 end
 
-module Interface::Trait
-  def requires_interface(intf)
-    unless intf.is_a? Interface
-      raise ArgumentError, "#{intf} is not an Interface"
+module Interface
+  module Trait
+    class MethodConflict < RuntimeError; end
+    class IncludeError < RuntimeError; end
+
+    def requires_interface(intf)
+      unless intf.is_a? Interface
+        raise ArgumentError, "#{intf} is not an Interface"
+      end
+      @__interface_trait_required_interface = intf
     end
-    define_singleton_method(:included) do |mod|
-      return if mod.include?(intf)
-      mod.assert_implements(intf) 
+
+    def append_features(mod)
+      unless mod.instance_variable_defined?(:@__trait_allow_include) &&
+             mod.instance_variable_get(:@__trait_allow_include)
+        raise IncludeError, "Traits can only be mixed in using method `with_trait`"
+      end
+      conflicts = public_instance_methods & mod.public_instance_methods
+      errors = conflicts.map { |c|
+        meth = mod.instance_method(c)
+        { meth: meth, owner: meth.owner } unless meth.owner.is_a?(Class)
+      }.compact
+      unless errors.empty?
+        message = "\n" + errors.map { |e| e[:meth].to_s }.join("\n")
+        raise MethodConflict, message
+      end
+      if @__interface__trait_required_interface
+        intf = @__interface_trait_required_interface
+        mod.include?(intf) || mod.assert_implements(intf)
+      end
+      super(mod)
     end
   end
 end
-

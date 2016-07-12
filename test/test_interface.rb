@@ -79,7 +79,7 @@ class TC_Interface < Test::Unit::TestCase
 
   def test_runtime_error_check
     assert_nothing_raised {
-      B.as_interface(@@alpha_interface, true).new.beta
+      B.as_interface(@@alpha_interface, runtime_checks: true).new.beta
     }
     assert_raise(ArgumentError) {
       B.as_interface(@@alpha_interface).new.delta
@@ -88,16 +88,16 @@ class TC_Interface < Test::Unit::TestCase
       B.as_interface(@@alpha_interface).new.delta(1)
     }
     assert_raise(Interface::TypeMismatchError) {
-      B.as_interface(@@alpha_interface, true).new.delta(1, 2)
+      B.as_interface(@@alpha_interface).new.delta(1, 2)
     }
     assert_raise(Interface::TypeMismatchError) {
-      B.as_interface(@@alpha_interface, true).new.delta(1, "2", "3")
+      B.as_interface(@@alpha_interface).new.delta(1, "2", "3")
     }
     assert_nothing_raised {
-      B.as_interface(@@alpha_interface, true).new.delta(1, "2")
+      B.as_interface(@@alpha_interface).new.delta(1, "2")
     }
     assert_nothing_raised {
-      B.as_interface(@@alpha_interface, true).new.delta(1, "2", 3)
+      B.as_interface(@@alpha_interface).new.delta(1, "2", 3)
     }
   end
 
