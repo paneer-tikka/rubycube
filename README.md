@@ -3,7 +3,8 @@ This is a backward incompatible fork of https://github.com/djberg96/interface
 It provides interfaces, traits and runtime interface checks in Ruby 
 
 ### Installation
-This gem is not yet available on rubygems. Please use from github directly.
+`gem install rubycube` OR
+`gem rubycube` in your Gemfile
 
 ### Synopsis
 See [this annotated example](examples/demo.rb)

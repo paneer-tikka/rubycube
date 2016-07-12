@@ -1,4 +1,4 @@
-# run as `RUBY_INTERFACE_TYPECHECK= 1 ruby examples/demo.rb`
+# run as `RUBY_CUBE_TYPECHECK= 1 ruby examples/demo.rb`
 require_relative '../lib/cube'
 
 Adder = interface {
