@@ -3,9 +3,9 @@
 #
 # Test suite for the Interface module.
 #####################################################
-ENV['RUBY_INTERFACE_TYPECHECK'] = "1"
+ENV['RUBY_CUBE_TYPECHECK'] = "1"
 require 'test-unit'
-require 'interface'
+require 'cube'
 
 
 class TC_Interface < Test::Unit::TestCase
@@ -51,17 +51,17 @@ class TC_Interface < Test::Unit::TestCase
   end
 
   def test_version
-    assert_equal('0.1.0', Interface::VERSION)
+    assert_equal('0.2.0', Cube::Interface::VERSION)
   end
 
   def test_interface_requirements_not_met
-    assert_raise(Interface::PublicVisibleMethodMissing){ A.extend(@@alpha_interface) }
-    assert_raise(Interface::PublicVisibleMethodMissing){ A.new.extend(@@alpha_interface) }
+    assert_raise(Cube::Interface::PublicVisibleMethodMissing){ A.extend(@@alpha_interface) }
+    assert_raise(Cube::Interface::PublicVisibleMethodMissing){ A.new.extend(@@alpha_interface) }
   end
 
   def test_sub_interface_requirements_not_met
-    assert_raise(Interface::PublicVisibleMethodMissing){ B.extend(@@gamma_interface) }
-    assert_raise(Interface::PublicVisibleMethodMissing){ B.new.extend(@@gamma_interface) }
+    assert_raise(Cube::Interface::PublicVisibleMethodMissing){ B.extend(@@gamma_interface) }
+    assert_raise(Cube::Interface::PublicVisibleMethodMissing){ B.new.extend(@@gamma_interface) }
   end
 
   def test_alpha_interface_requirements_met
@@ -69,12 +69,12 @@ class TC_Interface < Test::Unit::TestCase
   end
 
   def test_gamma_interface_requirements_met
-    assert_raise(Interface::MethodArityError) { C.new.extend(@@gamma_interface) }
-    assert_raise(Interface::MethodArityError) { C.as_interface(@@gamma_interface) }
+    assert_raise(Cube::Interface::MethodArityError) { C.new.extend(@@gamma_interface) }
+    assert_raise(Cube::Interface::MethodArityError) { C.as_interface(@@gamma_interface) }
   end
 
   def test_method_check
-    assert_raise(Interface::TypeMismatchError) { checker_method(B.as_interface(@@alpha_interface).new) }
+    assert_raise(Cube::Interface::TypeMismatchError) { checker_method(B.as_interface(@@alpha_interface).new) }
   end
 
   def test_runtime_error_check
@@ -87,10 +87,10 @@ class TC_Interface < Test::Unit::TestCase
     assert_raise(ArgumentError) {
       B.as_interface(@@alpha_interface).new.delta(1)
     }
-    assert_raise(Interface::TypeMismatchError) {
+    assert_raise(Cube::Interface::TypeMismatchError) {
       B.as_interface(@@alpha_interface).new.delta(1, 2)
     }
-    assert_raise(Interface::TypeMismatchError) {
+    assert_raise(Cube::Interface::TypeMismatchError) {
       B.as_interface(@@alpha_interface).new.delta(1, "2", "3")
     }
     assert_nothing_raised {

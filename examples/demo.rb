@@ -1,5 +1,5 @@
 # run as `RUBY_INTERFACE_TYPECHECK= 1 ruby examples/demo.rb`
-require_relative '../lib/interface'
+require_relative '../lib/cube'
 
 Adder = interface {
   # sum is a method that takes an array of Integer and returns an Integer
@@ -28,10 +28,10 @@ class SimpleCalc
     arr.index(i)
   end
 
-  implements Calculator #, runtime_checks: false # default is true
+#  implements Calculator #, runtime_checks: false # default is true
 end
 
-c = SimpleCalc.new
+c = SimpleCalc.as_interface(Calculator).new
 # If SimpleCalc does not have `implements Calculator`, but its methods match the interface
 # you can "cast" it to Calculator - `SimpleCalc.as_interface(Calculator).new`
 # This is useful for casting classes that you did not write
@@ -44,7 +44,7 @@ AdvancedCalculator = interface {
 }
 
 module AdvancedCalcT
-  extend Interface::Trait
+  extend Cube::Trait
   def product(a, b)
     ret = 0
     a.times { ret = sum([ret, b]) }
@@ -60,7 +60,7 @@ module AdvancedCalcT
 end
 
 module DummyCalcT
-  extend Interface::Trait
+  extend Cube::Trait
   def sum; end # this method conflicts with AdvancedCalcT, but SimpleCalc#sum takes precedence
   def foo; end
   def bar; end
@@ -84,7 +84,6 @@ AdvancedCalc = SimpleCalc.with_trait(AdvancedCalcT,
 sc = AdvancedCalc.new
 p sc.product(3, 2)
 
-__END__
 
 # Benchmarks. Run with RUBY_INTERFACE_TYPECHECK=0 and 1 to compare
 

@@ -15,7 +15,7 @@ Subinterfaces work as well.
 Since runtime checks are meant to be invoked for every invocation of a method,
 there is a runtime overhead associated which may not be desirable in
 production. Hence these checks are guarded by an environment variable
-`RUBY_INTERFACE_TYPECHECK`. Unless this variable is set to 1, the runtime
+`RUBY_CUBE_TYPECHECK`. Unless this variable is set to 1, the runtime
 checks are not executed
 
 ### Runtime performance of check methods
