@@ -27,8 +27,6 @@ class SimpleCalc
   def pos(arr, i)
     arr.index(i)
   end
-
-#  implements Calculator #, runtime_checks: false # default is true
 end
 
 c = SimpleCalc.as_interface(Calculator).new
@@ -55,6 +53,10 @@ module AdvancedCalcT
   def foo; end # this conflicts with DummyCalcT. Needs to be aliased (see below)
   def bar; end # this conflicts with DummyCalcT. Needs to be aliased (see below)
 
+  # This specifies the interface that the including Class must satisfy in order for
+  # this trait to work properly.
+  # Eg, the product method above uses `sum`, which it expects to get from the including
+  # class
   requires_interface Adder # Note that this will give an error if SimpleCalc#sum is removed
                            # even if this trait itself has a `sum` method
 end
@@ -84,6 +86,7 @@ AdvancedCalc = SimpleCalc.with_trait(AdvancedCalcT,
 sc = AdvancedCalc.new
 p sc.product(3, 2)
 
+__END__
 
 # Benchmarks. Run with RUBY_INTERFACE_TYPECHECK=0 and 1 to compare
 

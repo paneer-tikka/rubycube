@@ -240,20 +240,15 @@ class Object
 end
 
 class Module
-  def implements(mod, runtime_checks: true)
-    unless is_a? Class
-      raise "Non-Class modules should not implement interfaces"
-    end
-    instance_variable_set(:@__interface_runtime_check, true) if runtime_checks
-    include(mod)
-  end
-
   def as_interface(iface, runtime_checks: true)
-    clone.implements(iface, runtime_checks: runtime_checks)
-  end
-
-  def assert_implements(iface)
-    clone.implements(iface, false)
+    implements = lambda { |this|
+      unless this.is_a? Class
+        raise "Non-Class modules should not implement interfaces"
+      end
+      this.instance_variable_set(:@__interface_runtime_check, true) if runtime_checks
+      this.include(iface)
+    }
+    implements.call(clone)
   end
 
   def shell_implements(mod)
@@ -262,5 +257,3 @@ class Module
     include(mod)
   end
 end
-
-

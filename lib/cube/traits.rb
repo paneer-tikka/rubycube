@@ -28,7 +28,7 @@ module Cube
       end
       if @__interface__trait_required_interface
         intf = @__interface_trait_required_interface
-        mod.include?(intf) || mod.assert_implements(intf)
+        mod.include?(intf) || mod.as_interface(intf, runtime_checks: false)
       end
       super(mod)
     end
