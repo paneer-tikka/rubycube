@@ -6,23 +6,23 @@ It provides interfaces, traits and runtime interface checks in Ruby
 This gem is not yet available on rubygems. Please use from github directly.
 
 ### Synopsis
-See [this annotated example](examples/example_typecheck_trait.rb)
+See [this annotated example](examples/demo.rb)
 
 ### General Notes
-Subinterfaces work as well. See the test_sub.rb file under the 'test'
-directory for a sample.
 
-Since the `check_interface` and `check_class` methods are meant to be
-invoked for every invocation of a method, there is a runtime overhead
-associated which may not be desirable in production. Hence these methods
-are guarded by an environment variable `RUBY_INTERFACE_TYPECHECK`. Unless
-this variable is set to 1, the check methods are defined as empty methods.
+Subinterfaces work as well. 
+
+Since runtime checks are meant to be invoked for every invocation of a method,
+there is a runtime overhead associated which may not be desirable in
+production. Hence these checks are guarded by an environment variable
+`RUBY_INTERFACE_TYPECHECK`. Unless this variable is set to 1, the runtime
+checks are not executed
 
 ### Runtime performance of check methods
-  On a Macbook Pro 2.4 GHz Intel Core i5 machine, adding a `check_interface`
-  or `check_class` method costs about 1 second for every million calls. YMMV.
-  It is advisable to benchmark for your code to determine if the overhead is
-  acceptable in your enviroment.
+
+On a Macbook Pro 2.4 GHz Intel Core i5 machine, enabling runtime checks costs
+about 1 second for every million calls. YMMV.  It is advisable to benchmark for
+your code to determine if the overhead is acceptable in your enviroment.
 
 ### Developer's Notes (from the original repository)
   A discussion on IRC with Mauricio Fernandez got us talking about traits.
@@ -66,5 +66,4 @@ this variable is set to 1, the check methods are defined as empty methods.
 	
 ### Author
   Daniel J. Berger
-  
   Aditya Godbole
