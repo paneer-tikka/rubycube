@@ -4,7 +4,7 @@ It provides interfaces, traits and runtime interface checks in Ruby
 
 ### Installation
 `gem install rubycube` OR
-`gem rubycube` in your Gemfile
+`gem 'rubycube'` in your Gemfile
 
 ### Theory
 https://archive.org/details/T_Reenskaug__Working_with_Objects_The_Ooram_Software_Engineering_method
